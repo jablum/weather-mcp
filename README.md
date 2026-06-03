@@ -465,8 +465,10 @@ You can also find coordinates manually:
 Get weather forecast for any location worldwide.
 
 **Parameters:**
-- `latitude` (required): Latitude coordinate (-90 to 90)
-- `longitude` (required): Longitude coordinate (-180 to 180)
+- `latitude` (optional): Latitude coordinate (-90 to 90). Not required if `location_name` or `city_name` is provided.
+- `longitude` (optional): Longitude coordinate (-180 to 180). Not required if `location_name` or `city_name` is provided.
+- `location_name` (optional): Saved location alias (e.g., `"home"`). See saved locations below.
+- `city_name` (optional): City or place name to geocode (e.g., `"Paris, France"`). For cities in China, use pinyin only (e.g., `"Beijing"`, not `"北京"`). Uses the same geocoding as `search_location`.
 - `days` (optional): Number of days in forecast (1-16, default: 7)
 - `granularity` (optional): "daily" or "hourly" (default: "daily")
 - `include_precipitation_probability` (optional): Include rain chances (default: true)
@@ -495,32 +497,7 @@ Automatically selects the best data source: NOAA for US locations (more detailed
 - Snow and ice accumulation forecasts (when available, NEW in v1.2.0)
 - All timestamps in local timezone (NEW in v1.2.0)
 
-### 2. get_current_conditions (ENHANCED in v1.2.0)
-Get current weather conditions for a location (US only).
-
-**Parameters:**
-- `latitude` (required): Latitude coordinate (-90 to 90)
-- `longitude` (required): Longitude coordinate (-180 to 180)
-- `include_fire_weather` (optional): Include fire weather indices (default: false)
-- `include_normals` (optional): Include climate normals for comparison (default: false, NEW in v1.2.0)
-
-**Example:**
-```
-What are the current weather conditions in New York? (latitude: 40.7128, longitude: -74.0060)
-```
-
-**Returns:**
-- Current temperature, humidity, wind, pressure
-- Heat index or wind chill (when applicable)
-- 24-hour temperature range
-- Recent precipitation
-- Cloud cover and visibility
-- Snow depth on ground (when available, NEW in v1.2.0)
-- Climate normals comparison (when `include_normals=true`, NEW in v1.2.0)
-- Fire weather indices (when `include_fire_weather=true`)
-- All timestamps in local timezone (NEW in v1.2.0)
-
-### 3. search_location (NEW in v0.4.0)
+### 2. search_location (NEW in v0.4.0)
 Find coordinates for any location worldwide by name.
 
 **Parameters:**
@@ -545,7 +522,7 @@ Converts location names to coordinates using the Open-Meteo Geocoding API. Retur
 - Country and region information
 - Feature type (capital, city, airport, etc.)
 
-### 4. get_alerts
+### 3. get_alerts
 Get active weather alerts, watches, warnings, and advisories for US locations.
 
 **Parameters:**
@@ -571,7 +548,7 @@ Retrieves current weather alerts from the NOAA API for safety-critical weather i
 - Affected geographic areas
 - Recommended actions and safety information
 
-### 5. get_historical_weather
+### 4. get_historical_weather
 Get historical weather observations for a location.
 
 **Parameters:**
@@ -630,7 +607,7 @@ If you get "No historical data available":
 - Note: Most recent data has a 5-day delay
 - Very recent dates (last 5 days) may not be available in archival data yet
 
-### 6. get_air_quality (NEW in v0.5.0)
+### 5. get_air_quality (NEW in v0.5.0)
 Get comprehensive air quality data for any location worldwide.
 
 **Parameters:**
@@ -656,7 +633,7 @@ Provides current air quality conditions using the Open-Meteo Air Quality API wit
 - Activity recommendations for sensitive groups
 - Optional 5-day hourly forecast
 
-### 7. check_service_status
+### 6. check_service_status
 Check the operational status of weather APIs and cache performance.
 
 **Parameters:** None
@@ -676,7 +653,7 @@ Check if the weather services are operational
 - Status page links and recommended actions if issues are detected
 - Overall service availability summary
 
-### 8. get_marine_conditions (NEW in v0.6.0, Enhanced in v1.1.0)
+### 7. get_marine_conditions (NEW in v0.6.0, Enhanced in v1.1.0)
 Get marine weather conditions including wave height, swell, ocean currents, and sea state with automatic source selection for Great Lakes and coastal bays.
 
 **Parameters:**
@@ -709,7 +686,7 @@ Provides comprehensive marine weather data with intelligent dual-source support:
 - Wave period for planning and safety
 - Optional 5-day forecast with daily summaries
 
-### 9. get_weather_imagery (NEW in v1.5.0)
+### 8. get_weather_imagery (NEW in v1.5.0)
 Get weather radar and precipitation imagery for visual weather analysis.
 
 **Parameters:**
@@ -739,7 +716,7 @@ Provides access to weather radar and precipitation imagery from RainViewer API w
 
 **Note:** Satellite imagery is planned for a future release. Precipitation radar provides global coverage via the free RainViewer API.
 
-### 10. get_lightning_activity (NEW in v1.5.0)
+### 9. get_lightning_activity (NEW in v1.5.0)
 Get real-time lightning strike detection and safety assessment for outdoor activity planning.
 
 **Parameters:**
@@ -780,7 +757,7 @@ Provides real-time lightning strike detection from the Blitzortung.org global li
 
 **Note:** Data provided by Blitzortung.org, a free community-operated lightning detection network. May have regional coverage variations.
 
-### 11. get_river_conditions (NEW in v1.6.0)
+### 10. get_river_conditions (NEW in v1.6.0)
 Monitor river levels and flood status using NOAA and USGS data sources.
 
 **Parameters:**
@@ -811,7 +788,7 @@ Provides comprehensive river and streamflow monitoring for flood safety and recr
 
 **Note:** US coverage only. Data provided by NOAA National Water Prediction Service and USGS Water Services.
 
-### 12. get_wildfire_info (NEW in v1.6.0)
+### 11. get_wildfire_info (NEW in v1.6.0)
 Monitor active wildfires and fire perimeters for safety and evacuation planning.
 
 **Parameters:**
@@ -847,7 +824,7 @@ Provides critical wildfire monitoring and safety information using NIFC (Nationa
 
 **Note:** Data from NIFC WFIGS (Wildland Fire Interagency Geospatial Services). Always consult official sources for evacuation orders at https://inciweb.nwcg.gov/
 
-### 13. save_location (NEW in v1.7.0)
+### 12. save_location (NEW in v1.7.0)
 Save a location with an alias for easy reuse in weather queries.
 
 **Parameters:**
@@ -892,7 +869,7 @@ Saves a location to persistent storage (`~/.weather-mcp/locations.json`) for eas
 - Coordinates, timezone, and administrative region
 - Usage examples showing how to use with weather tools
 
-### 14. list_saved_locations (NEW in v1.7.0)
+### 13. list_saved_locations (NEW in v1.7.0)
 View all saved locations.
 
 **Parameters:** None
@@ -912,7 +889,7 @@ Lists all locations saved in your persistent storage with their aliases, names, 
 - Usage examples for each location
 - Total count of saved locations
 
-### 15. get_saved_location (NEW in v1.7.0)
+### 14. get_saved_location (NEW in v1.7.0)
 Get details for a specific saved location.
 
 **Parameters:**
@@ -934,7 +911,7 @@ Retrieves detailed information about a specific saved location, including coordi
 - Save and update timestamps
 - Usage examples
 
-### 16. remove_saved_location (NEW in v1.7.0)
+### 15. remove_saved_location (NEW in v1.7.0)
 Remove a saved location.
 
 **Parameters:**
@@ -965,6 +942,9 @@ get_forecast(latitude=47.6062, longitude=-122.3321)
 
 # You can use:
 get_forecast(location_name="home")
+
+# Or geocode a city/place name directly:
+get_forecast(city_name="Paris, France")
 
 # Natural language queries work too:
 "What's the weather forecast at home?"
@@ -1127,7 +1107,6 @@ weather-mcp/
 │   │   └── ApiError.ts          # Custom error class hierarchy
 │   ├── handlers/
 │   │   ├── alertsHandler.ts     # Weather alerts tool handler
-│   │   ├── currentConditionsHandler.ts  # Current conditions handler
 │   │   ├── forecastHandler.ts   # Forecast tool handler
 │   │   ├── historicalWeatherHandler.ts  # Historical weather handler
 │   │   ├── airQualityHandler.ts # Air quality handler

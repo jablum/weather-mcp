@@ -66,7 +66,6 @@ describe('Tool Configuration', () => {
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('search_location');
       expect(enabled).toContain('check_service_status');
@@ -79,9 +78,8 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('basic');
 
       const enabled = toolConfig.getEnabledTools();
-      expect(enabled).toHaveLength(5);
+      expect(enabled).toHaveLength(8);
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('search_location');
       expect(enabled).toContain('check_service_status');
@@ -91,9 +89,8 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('standard');
 
       const enabled = toolConfig.getEnabledTools();
-      expect(enabled).toHaveLength(6);
+      expect(enabled).toHaveLength(9);
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('get_historical_weather');
       expect(enabled).toContain('search_location');
@@ -104,9 +101,8 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('full');
 
       const enabled = toolConfig.getEnabledTools();
-      expect(enabled).toHaveLength(7);
+      expect(enabled).toHaveLength(10);
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('get_historical_weather');
       expect(enabled).toContain('search_location');
@@ -118,9 +114,8 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('all');
 
       const enabled = toolConfig.getEnabledTools();
-      expect(enabled).toHaveLength(12); // Updated for v1.6.0: added get_river_conditions and get_wildfire_info
+      expect(enabled).toHaveLength(15);
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('get_historical_weather');
       expect(enabled).toContain('check_service_status');
@@ -144,30 +139,30 @@ describe('Tool Configuration', () => {
     });
 
     it('should enable multiple specific tools', async () => {
-      const toolConfig = await createToolConfig('get_forecast,get_current_conditions,get_alerts');
+      const toolConfig = await createToolConfig('get_forecast,get_alerts,search_location');
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toHaveLength(3);
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
+      expect(enabled).toContain('search_location');
     });
 
     it('should handle tool aliases', async () => {
-      const toolConfig = await createToolConfig('forecast,current,alerts');
+      const toolConfig = await createToolConfig('forecast,alerts,search');
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
+      expect(enabled).toContain('search_location');
     });
 
     it('should mix full names and aliases', async () => {
-      const toolConfig = await createToolConfig('get_forecast,current,search');
+      const toolConfig = await createToolConfig('get_forecast,alerts,search');
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
+      expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('search_location');
     });
   });
@@ -178,7 +173,6 @@ describe('Tool Configuration', () => {
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
       expect(enabled).toContain('search_location');
       expect(enabled).toContain('check_service_status');
@@ -207,7 +201,7 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('all,-get_marine_conditions');
 
       const enabled = toolConfig.getEnabledTools();
-      expect(enabled).toHaveLength(11); // Updated for v1.6.0: 12 total tools - 1 removed = 11
+      expect(enabled).toHaveLength(14);
       expect(enabled).not.toContain('get_marine_conditions');
       expect(enabled).toContain('get_forecast');
       expect(enabled).toContain('get_air_quality');
@@ -238,7 +232,6 @@ describe('Tool Configuration', () => {
       expect(enabled).toContain('get_air_quality');
       expect(enabled).not.toContain('get_alerts');
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
     });
 
     it('should handle complex combinations', async () => {
@@ -252,12 +245,12 @@ describe('Tool Configuration', () => {
     });
 
     it('should handle individual tools with additions', async () => {
-      const toolConfig = await createToolConfig('forecast,+current,+alerts');
+      const toolConfig = await createToolConfig('forecast,+alerts,+search');
 
       const enabled = toolConfig.getEnabledTools();
       expect(enabled).toContain('get_forecast');
-      expect(enabled).toContain('get_current_conditions');
       expect(enabled).toContain('get_alerts');
+      expect(enabled).toContain('search_location');
     });
   });
 
@@ -266,7 +259,7 @@ describe('Tool Configuration', () => {
       const toolConfig = await createToolConfig('basic');
 
       expect(toolConfig.isEnabled('get_forecast')).toBe(true);
-      expect(toolConfig.isEnabled('get_current_conditions')).toBe(true);
+      expect(toolConfig.isEnabled('get_alerts')).toBe(true);
     });
 
     it('should return false for disabled tools', async () => {
@@ -309,11 +302,18 @@ describe('Tool Configuration', () => {
     });
 
     it('should handle duplicate tools', async () => {
-      const toolConfig = await createToolConfig('forecast,forecast,current');
+      const toolConfig = await createToolConfig('forecast,forecast,alerts');
 
       const enabled = toolConfig.getEnabledTools();
       // Should deduplicate
       expect(enabled.filter(t => t === 'get_forecast')).toHaveLength(1);
+    });
+
+    it('should ignore removed current/conditions aliases', async () => {
+      const toolConfig = await createToolConfig('forecast,current,conditions');
+
+      const enabled = toolConfig.getEnabledTools();
+      expect(enabled).toEqual(['get_forecast']);
     });
   });
 
@@ -331,7 +331,8 @@ describe('Tool Configuration', () => {
       const { ALIASES } = await import('../../src/config/tools.js');
 
       expect(ALIASES).toHaveProperty('forecast');
-      expect(ALIASES).toHaveProperty('current');
+      expect(ALIASES).not.toHaveProperty('current');
+      expect(ALIASES).not.toHaveProperty('conditions');
       expect(ALIASES).toHaveProperty('marine');
       expect(ALIASES.forecast).toBe('get_forecast');
     });

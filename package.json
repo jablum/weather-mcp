@@ -1,8 +1,8 @@
 {
-  "name": "@dangahagan/weather-mcp",
+  "name": "@jablum/weather-mcp",
   "version": "1.7.0",
   "description": "MCP (Model Context Protocol) server providing weather data from NOAA and Open-Meteo APIs. Supports forecasts, current conditions, and historical weather data (1940-present) with no API keys required.",
-  "mcpName": "io.github.dgahagan/weather-mcp",
+  "mcpName": "io.github.jablum/weather-mcp",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -46,10 +46,10 @@
   ],
   "author": "Dan Gahagan",
   "license": "MIT",
-  "homepage": "https://github.com/weather-mcp/weather-mcp#readme",
+  "homepage": "https://github.com/jablum/weather-mcp/weather-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/weather-mcp/weather-mcp.git"
+    "url": "git+https://github.com/jablum/weather-mcp/weather-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/weather-mcp/weather-mcp/issues"

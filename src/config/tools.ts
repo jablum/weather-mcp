@@ -8,7 +8,7 @@
  * - ENABLED_TOOLS=full                     # All tools except experimental
  * - ENABLED_TOOLS=basic,+air_quality       # Basic tools + air quality
  * - ENABLED_TOOLS=all,-marine              # All tools except marine
- * - ENABLED_TOOLS=forecast,current,alerts  # Specific tools only
+ * - ENABLED_TOOLS=forecast,alerts,search  # Specific tools only
  */
 
 /**
@@ -16,7 +16,6 @@
  */
 export type ToolName =
   | 'get_forecast'
-  | 'get_current_conditions'
   | 'get_alerts'
   | 'get_historical_weather'
   | 'check_service_status'
@@ -39,7 +38,6 @@ const TOOL_PRESETS: Record<string, ToolName[]> = {
   // Essential weather tools - minimal overhead
   basic: [
     'get_forecast',
-    'get_current_conditions',
     'get_alerts',
     'search_location',
     'check_service_status',
@@ -52,7 +50,6 @@ const TOOL_PRESETS: Record<string, ToolName[]> = {
   // Basic + historical data
   standard: [
     'get_forecast',
-    'get_current_conditions',
     'get_alerts',
     'get_historical_weather',
     'search_location',
@@ -66,7 +63,6 @@ const TOOL_PRESETS: Record<string, ToolName[]> = {
   // Standard + environmental data
   full: [
     'get_forecast',
-    'get_current_conditions',
     'get_alerts',
     'get_historical_weather',
     'search_location',
@@ -81,7 +77,6 @@ const TOOL_PRESETS: Record<string, ToolName[]> = {
   // All available tools
   all: [
     'get_forecast',
-    'get_current_conditions',
     'get_alerts',
     'get_historical_weather',
     'check_service_status',
@@ -104,8 +99,6 @@ const TOOL_PRESETS: Record<string, ToolName[]> = {
  */
 const TOOL_ALIASES: Record<string, ToolName> = {
   'forecast': 'get_forecast',
-  'current': 'get_current_conditions',
-  'conditions': 'get_current_conditions',
   'alerts': 'get_alerts',
   'warnings': 'get_alerts',
   'historical': 'get_historical_weather',
@@ -243,7 +236,6 @@ function resolveToolName(name: string): ToolName | undefined {
 function isToolName(name: string): name is ToolName {
   const validTools: ToolName[] = [
     'get_forecast',
-    'get_current_conditions',
     'get_alerts',
     'get_historical_weather',
     'check_service_status',

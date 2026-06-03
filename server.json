@@ -1,20 +1,20 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
-  "name": "io.github.dgahagan/weather-mcp",
+  "name": "io.github.jablum/weather-mcp",
   "title": "Weather Data MCP Server",
   "description": "Weather forecasts, alerts, air quality, marine, radar imagery, lightning. NOAA + Open-Meteo.",
   "version": "1.6.1",
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@dangahagan/weather-mcp",
+      "identifier": "@jablum/weather-mcp",
       "version": "1.6.1",
       "transport": {
         "type": "stdio"
       }
     }
   ],
-  "homepage": "https://github.com/weather-mcp/weather-mcp",
+  "homepage": "https://github.com/jablum/weather-mcp",
   "license": "MIT",
   "categories": [
     "data",

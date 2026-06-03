@@ -240,7 +240,6 @@ export async function handleSaveLocation(
   output += `---\n\n`;
   output += `This location is now saved and can be used with any weather tool:\n\n`;
   output += `- \`get_forecast(location_name="${alias}")\`\n`;
-  output += `- \`get_current_conditions(location_name="${alias}")\`\n`;
   output += `- \`get_alerts(location_name="${alias}")\`\n`;
   output += `- And all other weather tools\n\n`;
 
@@ -427,7 +426,6 @@ export async function handleGetSavedLocation(
   output += `**Usage Examples:**\n\n`;
   output += `\`\`\`\n`;
   output += `get_forecast(location_name="${alias}")\n`;
-  output += `get_current_conditions(location_name="${alias}")\n`;
   output += `get_alerts(location_name="${alias}")\n`;
   output += `get_air_quality(location_name="${alias}")\n`;
   output += `\`\`\`\n`;

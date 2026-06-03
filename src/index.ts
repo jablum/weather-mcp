@@ -26,7 +26,6 @@ import { toolConfig } from './config/tools.js';
 import { logger } from './utils/logger.js';
 import { formatErrorForUser } from './errors/ApiError.js';
 import { handleGetForecast } from './handlers/forecastHandler.js';
-import { handleGetCurrentConditions } from './handlers/currentConditionsHandler.js';
 import { handleGetAlerts } from './handlers/alertsHandler.js';
 import { handleGetHistoricalWeather } from './handlers/historicalWeatherHandler.js';
 import { handleCheckServiceStatus } from './handlers/statusHandler.js';
@@ -74,7 +73,7 @@ function redactSensitiveFields(args: unknown): unknown {
   const redacted: Record<string, unknown> = {};
   const sensitiveFields = [
     'latitude', 'longitude', 'lat', 'lon',
-    'location', 'city', 'state', 'address', 'query',
+    'location', 'city', 'city_name', 'state', 'address', 'query',
     'zipcode', 'postalCode', 'place', 'coordinates'
   ];
 
@@ -160,25 +159,29 @@ const server = new Server(
 const TOOL_DEFINITIONS = {
   get_forecast: {
     name: 'get_forecast' as const,
-    description: 'Get future weather forecast for a location (global coverage). Use this for upcoming weather predictions (e.g., "tomorrow", "this week", "next 7 days", "hourly forecast"). Returns forecast data including temperature, precipitation, wind, conditions, and sunrise/sunset times. Supports both daily and hourly granularity. Automatically selects best data source: NOAA for US locations (more detailed), Open-Meteo for international locations. For current weather, use get_current_conditions. For past weather, use get_historical_weather. Can use either coordinates OR a saved location name (e.g., location_name="home"). If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
+    description: 'Get future weather forecast for a location (global coverage). Use this for upcoming weather predictions (e.g., "tomorrow", "this week", "next 7 days", "hourly forecast") and for current or today\'s weather when a dedicated current-conditions tool is unavailable. Returns forecast data including temperature, precipitation, wind, conditions, and sunrise/sunset times. Supports both daily and hourly granularity. Automatically selects best data source: NOAA for US locations (more detailed), Open-Meteo for international locations. For past weather, use get_historical_weather. Can use coordinates, a saved location name (e.g., location_name="home"), or a city/place name (e.g., city_name="Paris, France") which is geocoded automatically using the same service as search_location. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
     inputSchema: {
       type: 'object' as const,
       properties: {
         latitude: {
           type: 'number' as const,
-          description: 'Latitude of the location (-90 to 90). Not required if location_name is provided.',
+          description: 'Latitude of the location (-90 to 90). Not required if location_name or city_name is provided.',
           minimum: -90,
           maximum: 90
         },
         longitude: {
           type: 'number' as const,
-          description: 'Longitude of the location (-180 to 180). Not required if location_name is provided.',
+          description: 'Longitude of the location (-180 to 180). Not required if location_name or city_name is provided.',
           minimum: -180,
           maximum: 180
         },
         location_name: {
           type: 'string' as const,
           description: 'Name of a saved location (e.g., "home", "cabin"). Use this instead of latitude/longitude to reference a saved location. List saved locations with list_saved_locations.'
+        },
+        city_name: {
+          type: 'string' as const,
+          description: 'City or place name to geocode (e.g., "Seattle, WA", "Paris, France"). For cities in China, use pinyin only (e.g., "Beijing", "Shanghai"; not Chinese characters). Uses the same geocoding as search_location. Not required if latitude/longitude or location_name is provided.'
         },
         days: {
           type: 'number' as const,
@@ -219,39 +222,6 @@ const TOOL_DEFINITIONS = {
     }
   },
 
-  get_current_conditions: {
-    name: 'get_current_conditions' as const,
-    description: 'Get the most recent weather observation for a location (US only). Use this for current weather or when asking about "today\'s weather", "right now", or recent conditions without a specific historical date range. Returns the latest observation from the nearest weather station. Optionally includes fire weather indices (Haines Index, Grassland Fire Danger, Red Flag Threat) when requested. For specific past dates or date ranges, use get_historical_weather instead. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        latitude: {
-          type: 'number' as const,
-          description: 'Latitude of the location (-90 to 90)',
-          minimum: -90,
-          maximum: 90
-        },
-        longitude: {
-          type: 'number' as const,
-          description: 'Longitude of the location (-180 to 180)',
-          minimum: -180,
-          maximum: 180
-        },
-        include_fire_weather: {
-          type: 'boolean' as const,
-          description: 'Include fire weather indices (Haines Index, Grassland Fire Danger, Red Flag Threat) in the response (default: false, US only)',
-          default: false
-        },
-        include_normals: {
-          type: 'boolean' as const,
-          description: 'Include climate normals (30-year averages) for comparison with current conditions (default: false). Shows normal high/low temperatures and precipitation, with departure from normal.',
-          default: false
-        }
-      },
-      required: ['latitude', 'longitude']
-    }
-  },
-
   get_alerts: {
     name: 'get_alerts' as const,
     description: 'Get active weather alerts, watches, warnings, and advisories for a location (US only). Use this for safety-critical weather information when asked about "any alerts?", "weather warnings?", "is it safe?", "dangerous weather?", or "weather watches?". Returns severity, urgency, certainty, effective/expiration times, and affected areas. For forecast data, use get_forecast instead. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
@@ -282,7 +252,7 @@ const TOOL_DEFINITIONS = {
 
   get_historical_weather: {
     name: 'get_historical_weather' as const,
-    description: 'Get historical weather data for a specific date range in the past. Use this when the user asks about weather on specific past dates (e.g., "yesterday", "last week", "November 4, 2024", "30 years ago"). Automatically uses NOAA API for recent dates (last 7 days, US only) or Open-Meteo API for older dates (worldwide, back to 1940). Do NOT use for current conditions - use get_current_conditions instead. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
+    description: 'Get historical weather data for a specific date range in the past. Use this when the user asks about weather on specific past dates (e.g., "yesterday", "last week", "November 4, 2024", "30 years ago"). Automatically uses NOAA API for recent dates (last 7 days, US only) or Open-Meteo API for older dates (worldwide, back to 1940). For upcoming or today\'s weather, use get_forecast instead. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -336,7 +306,7 @@ const TOOL_DEFINITIONS = {
       properties: {
         query: {
           type: 'string' as const,
-          description: 'Location name to search for (e.g., "Paris", "New York, NY", "Tokyo")'
+          description: 'Location name(pinyin for china) to search for (e.g., "Paris", "New York, NY", "Tokyo", "Beijing")'
         },
         limit: {
           type: 'number' as const,
@@ -672,12 +642,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     switch (name) {
       case 'get_forecast':
         return await withAnalytics('get_forecast', async () =>
-          handleGetForecast(args, noaaService, openMeteoService, locationStore, nceiService)
-        );
-
-      case 'get_current_conditions':
-        return await withAnalytics('get_current_conditions', async () =>
-          handleGetCurrentConditions(args, noaaService, openMeteoService, nceiService)
+          handleGetForecast(args, noaaService, openMeteoService, locationStore, geocodingService, nceiService)
         );
 
       case 'get_alerts':

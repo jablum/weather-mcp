@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **get_forecast city_name** - Geocode city or place names (same multi-provider stack as `search_location`) before fetching forecasts; coordinates and saved `location_name` aliases take precedence when provided together
+
+### Removed
+
+- **get_current_conditions** - Tool, handler, and `current`/`conditions` ENABLED_TOOLS aliases removed; use `get_forecast` for current or upcoming weather
+
 ## [1.6.1] - 2025-11-10
 
 ### Fixed

@@ -20,7 +20,6 @@ src/
 ├── index.ts                 # MCP server entry point, tool registry
 ├── handlers/                # Tool request handlers (one per MCP tool)
 │   ├── forecastHandler.ts
-│   ├── currentConditionsHandler.ts
 │   ├── alertsHandler.ts
 │   ├── historicalWeatherHandler.ts
 │   ├── statusHandler.ts
@@ -68,24 +67,23 @@ src/
 4. **Caching Strategy:** LRU cache with TTL based on data volatility (see `src/config/cache.ts`)
 5. **Error Hierarchy:** Custom error classes for different failure scenarios
 
-## Key Features (16 MCP Tools)
+## Key Features (15 MCP Tools)
 
-1. **get_forecast** - 7-day forecasts (NOAA/Open-Meteo, auto-select by location) - Now supports saved locations via `location_name`
-2. **get_current_conditions** - Current weather + fire weather indices (NOAA, US only)
-3. **get_alerts** - Weather alerts/warnings (NOAA, US only)
-4. **get_historical_weather** - Historical data 1940-present (Open-Meteo, global)
-5. **check_service_status** - API health check (all services)
-6. **search_location** - Location search/geocoding (Nominatim/OSM, better small town coverage)
-7. **get_air_quality** - Air quality index + pollutants (Open-Meteo, global)
-8. **get_marine_conditions** - Wave height, swell, currents (Open-Meteo, global)
-9. **get_weather_imagery** - Weather radar/precipitation imagery (RainViewer, global)
-10. **get_lightning_activity** - Real-time lightning detection (Blitzortung.org, global)
-11. **get_river_conditions** - River levels and flood monitoring (NOAA/USGS, US only)
-12. **get_wildfire_info** - Active wildfire tracking (NIFC, US only)
-13. **save_location** - Save frequently used locations with aliases (NEW in v1.7.0)
-14. **list_saved_locations** - View all saved locations (NEW in v1.7.0)
-15. **get_saved_location** - Get details for a saved location (NEW in v1.7.0)
-16. **remove_saved_location** - Delete a saved location (NEW in v1.7.0)
+1. **get_forecast** - 7-day forecasts (NOAA/Open-Meteo, auto-select by location) - Supports saved locations via `location_name` and geocoding via `city_name`
+2. **get_alerts** - Weather alerts/warnings (NOAA, US only)
+3. **get_historical_weather** - Historical data 1940-present (Open-Meteo, global)
+4. **check_service_status** - API health check (all services)
+5. **search_location** - Location search/geocoding (Nominatim/OSM, better small town coverage)
+6. **get_air_quality** - Air quality index + pollutants (Open-Meteo, global)
+7. **get_marine_conditions** - Wave height, swell, currents (Open-Meteo, global)
+8. **get_weather_imagery** - Weather radar/precipitation imagery (RainViewer, global)
+9. **get_lightning_activity** - Real-time lightning detection (Blitzortung.org, global)
+10. **get_river_conditions** - River levels and flood monitoring (NOAA/USGS, US only)
+11. **get_wildfire_info** - Active wildfire tracking (NIFC, US only)
+12. **save_location** - Save frequently used locations with aliases (NEW in v1.7.0)
+13. **list_saved_locations** - View all saved locations (NEW in v1.7.0)
+14. **get_saved_location** - Get details for a saved location (NEW in v1.7.0)
+15. **remove_saved_location** - Delete a saved location (NEW in v1.7.0)
 
 ## Development Guidelines
 
@@ -462,7 +460,6 @@ your_tool: {
 - ✅ `get_forecast` - Full support for `location_name`
 
 **Coming Soon:**
-- `get_current_conditions`
 - `get_alerts`
 - `get_air_quality`
 - `get_marine_conditions`

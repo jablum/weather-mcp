@@ -7,6 +7,7 @@ import { DateTime } from 'luxon';
 import { NOAAService } from '../services/noaa.js';
 import { OpenMeteoService } from '../services/openmeteo.js';
 import { NCEIService } from '../services/ncei.js';
+import { GeocodingService } from '../services/geocoding.js';
 import { LocationStore } from '../services/locationStore.js';
 import type { GridpointProperties, GridpointDataSeries } from '../types/noaa.js';
 import {
@@ -14,7 +15,7 @@ import {
   validateGranularity,
   validateOptionalBoolean,
 } from '../utils/validation.js';
-import { resolveLocation } from '../utils/locationResolver.js';
+import { resolveLocationAsync, type ResolvedLocation } from '../utils/locationResolver.js';
 import { logger } from '../utils/logger.js';
 import {
   extractSnowfallForecast,
@@ -29,12 +30,28 @@ interface ForecastArgs {
   latitude?: number;
   longitude?: number;
   location_name?: string;
+  city_name?: string;
   days?: number;
   granularity?: 'daily' | 'hourly';
   include_precipitation_probability?: boolean;
   include_severe_weather?: boolean;
   include_normals?: boolean;
   source?: 'auto' | 'noaa' | 'openmeteo';
+}
+
+function formatLocationLine(
+  latitude: number,
+  longitude: number,
+  resolved: ResolvedLocation
+): string {
+  const coords = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  if (resolved.source === 'geocoded' && resolved.display_name) {
+    return `**Location:** ${resolved.display_name} (${coords})\n`;
+  }
+  if (resolved.source === 'saved_location' && resolved.location_name) {
+    return `**Location:** ${resolved.location_name} (${coords})\n`;
+  }
+  return `**Location:** ${coords}\n`;
 }
 
 /**
@@ -166,10 +183,15 @@ export async function handleGetForecast(
   noaaService: NOAAService,
   openMeteoService: OpenMeteoService,
   locationStore: LocationStore,
+  geocodingService: GeocodingService,
   nceiService?: NCEIService
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  // Resolve location from either coordinates or saved location name
-  const { latitude, longitude } = resolveLocation(args as ForecastArgs, locationStore);
+  const resolved = await resolveLocationAsync(
+    args as ForecastArgs,
+    locationStore,
+    geocodingService
+  );
+  const { latitude, longitude } = resolved;
   const days = validateForecastDays(args);
   const granularity = validateGranularity((args as ForecastArgs)?.granularity);
   const include_precipitation_probability = validateOptionalBoolean(
@@ -205,8 +227,7 @@ export async function handleGetForecast(
       noaaService,
       openMeteoService,
       nceiService,
-      latitude,
-      longitude,
+      resolved,
       days,
       granularity,
       include_precipitation_probability,
@@ -218,8 +239,7 @@ export async function handleGetForecast(
     return await formatOpenMeteoForecast(
       openMeteoService,
       nceiService,
-      latitude,
-      longitude,
+      resolved,
       days,
       granularity,
       include_precipitation_probability,
@@ -235,14 +255,14 @@ async function formatNOAAForecast(
   noaaService: NOAAService,
   openMeteoService: OpenMeteoService,
   nceiService: NCEIService | undefined,
-  latitude: number,
-  longitude: number,
+  resolved: ResolvedLocation,
   days: number,
   granularity: 'daily' | 'hourly',
   include_precipitation_probability: boolean,
   include_severe_weather: boolean,
   include_normals: boolean
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
+  const { latitude, longitude } = resolved;
   // Get timezone for proper time formatting
   let timezone = guessTimezoneFromCoords(latitude, longitude);
   try {
@@ -270,7 +290,7 @@ async function formatNOAAForecast(
 
   // Format the forecast for display
   let output = `# Weather Forecast (${granularity === 'hourly' ? 'Hourly' : 'Daily'})\n\n`;
-  output += `**Location:** ${latitude.toFixed(4)}, ${longitude.toFixed(4)}\n`;
+  output += formatLocationLine(latitude, longitude, resolved);
   output += `**Elevation:** ${forecast.properties.elevation.value}m\n`;
   if (forecast.properties.updated) {
     output += `**Updated:** ${formatInTimezone(forecast.properties.updated, timezone)}\n`;
@@ -419,13 +439,13 @@ async function formatNOAAForecast(
 async function formatOpenMeteoForecast(
   openMeteoService: OpenMeteoService,
   nceiService: NCEIService | undefined,
-  latitude: number,
-  longitude: number,
+  resolved: ResolvedLocation,
   days: number,
   granularity: 'daily' | 'hourly',
   include_precipitation_probability: boolean,
   include_normals: boolean
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
+  const { latitude, longitude } = resolved;
   // Get forecast data from Open-Meteo
   const forecast = await openMeteoService.getForecast(
     latitude,
@@ -435,7 +455,7 @@ async function formatOpenMeteoForecast(
   );
 
   let output = `# Weather Forecast (${granularity === 'hourly' ? 'Hourly' : 'Daily'})\n\n`;
-  output += `**Location:** ${latitude.toFixed(4)}, ${longitude.toFixed(4)}\n`;
+  output += formatLocationLine(latitude, longitude, resolved);
   output += `**Elevation:** ${forecast.elevation}m\n`;
   output += `**Timezone:** ${forecast.timezone}\n`;
   output += `**Forecast Days:** ${days}\n\n`;
