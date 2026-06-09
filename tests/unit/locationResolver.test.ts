@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { resolveLocation, resolveLocationAsync } from '../../src/utils/locationResolver.js';
+import {
+  clearCityGeocodeCache,
+  resolveLocation,
+  resolveLocationAsync
+} from '../../src/utils/locationResolver.js';
 import { LocationStore } from '../../src/services/locationStore.js';
 import type { GeocodingService } from '../../src/services/geocoding.js';
 
@@ -13,6 +17,7 @@ describe('locationResolver', () => {
   let geocodingService: GeocodingService;
 
   beforeEach(() => {
+    clearCityGeocodeCache();
     storeDir = mkdtempSync(join(tmpdir(), 'weather-mcp-loc-'));
     storePath = join(storeDir, 'locations.json');
     locationStore = new LocationStore(storePath);
@@ -50,6 +55,20 @@ describe('locationResolver', () => {
         source: 'geocoded',
         display_name: 'Seattle, Washington, United States'
       });
+    });
+
+    it('should use cache for repeated city_name lookups', async () => {
+      const args = { city_name: 'Seattle, WA' };
+
+      await resolveLocationAsync(args, locationStore, geocodingService);
+      await resolveLocationAsync(args, locationStore, geocodingService);
+      await resolveLocationAsync(
+        { city_name: 'seattle, wa' },
+        locationStore,
+        geocodingService
+      );
+
+      expect(geocodingService.geocode).toHaveBeenCalledTimes(1);
     });
 
     it('should prefer coordinates over city_name', async () => {

@@ -74,6 +74,10 @@ export const CacheConfig = {
     // These are geographic and never change
     gridCoordinates: Infinity,
 
+    // City name geocoding (city_name -> lat/lon)
+    // Geographic coordinates for a city do not change
+    geocoding: Infinity,
+
     // Weather station lists
     // Stations rarely change
     stations: 24 * HOUR,

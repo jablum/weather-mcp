@@ -208,6 +208,7 @@ describe('Cache Configuration', () => {
     it('should handle all TTL keys', () => {
       const requiredKeys = [
         'gridCoordinates',
+        'geocoding',
         'stations',
         'forecast',
         'currentConditions',

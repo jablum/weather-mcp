@@ -2,9 +2,25 @@
  * Utility for resolving location coordinates from various input formats
  */
 
+import { CacheConfig } from '../config/cache.js';
 import type { GeocodingService } from '../services/geocoding.js';
 import { LocationStore } from '../services/locationStore.js';
+import { Cache } from './cache.js';
+import { logger } from './logger.js';
 import { validateLatitude, validateLongitude } from './validation.js';
+
+interface CachedCityGeocode {
+  latitude: number;
+  longitude: number;
+  display_name: string;
+}
+
+const cityGeocodeCache = new Cache<CachedCityGeocode>(CacheConfig.maxSize);
+
+/** Clear cached city name geocoding results (primarily for tests) */
+export function clearCityGeocodeCache(): void {
+  cityGeocodeCache.clear();
+}
 
 export interface LocationInput {
   latitude?: number;
@@ -155,14 +171,42 @@ export async function resolveLocationAsync(
       throw new Error('city_name cannot be empty');
     }
 
+    const cacheKey = Cache.generateKey('city-geocode', cityName.toLowerCase());
+
+    if (CacheConfig.enabled) {
+      const cached = cityGeocodeCache.get(cacheKey);
+      if (cached) {
+        logger.info('City geocode cache hit', { city_name: cityName });
+        return {
+          latitude: cached.latitude,
+          longitude: cached.longitude,
+          source: 'geocoded',
+          display_name: cached.display_name
+        };
+      }
+    }
+
     const results = await geocodingService.geocode(cityName, 1);
     const match = results[0];
+    const displayName = match.display_name || match.name;
+
+    if (CacheConfig.enabled) {
+      cityGeocodeCache.set(
+        cacheKey,
+        {
+          latitude: match.latitude,
+          longitude: match.longitude,
+          display_name: displayName
+        },
+        CacheConfig.ttl.geocoding
+      );
+    }
 
     return {
       latitude: match.latitude,
       longitude: match.longitude,
       source: 'geocoded',
-      display_name: match.display_name || match.name
+      display_name: displayName
     };
   }
 
