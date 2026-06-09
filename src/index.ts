@@ -159,63 +159,38 @@ const server = new Server(
 const TOOL_DEFINITIONS = {
   get_forecast: {
     name: 'get_forecast' as const,
-    description: 'Get future weather forecast for a location (global coverage). Use this for upcoming weather predictions (e.g., "tomorrow", "this week", "next 7 days", "hourly forecast") and for current or today\'s weather when a dedicated current-conditions tool is unavailable. Returns forecast data including temperature, precipitation, wind, conditions, and sunrise/sunset times. Supports both daily and hourly granularity. Automatically selects best data source: NOAA for US locations (more detailed), Open-Meteo for international locations. For past weather, use get_historical_weather. Can use coordinates, a saved location name (e.g., location_name="home"), or a city/place name (e.g., city_name="Paris, France") which is geocoded automatically using the same service as search_location. If this tool returns an error, check the error message for status page links and consider using check_service_status to verify API availability.',
+    description: 'Weather forecast for a location. IMPORTANT: for Chinese cities, you MUST use pinyin (e.g., chengdu, beijing, shanghai), NOT Chinese characters. Daily or hourly; includes temperature, precipitation, wind, and conditions.',
     inputSchema: {
       type: 'object' as const,
       properties: {
         latitude: {
           type: 'number' as const,
-          description: 'Latitude of the location (-90 to 90). Not required if location_name or city_name is provided.',
+          description: 'Latitude (-90 to 90). Optional if location_name or city_name provided.',
           minimum: -90,
           maximum: 90
         },
         longitude: {
           type: 'number' as const,
-          description: 'Longitude of the location (-180 to 180). Not required if location_name or city_name is provided.',
+          description: 'Longitude (-180 to 180). Optional if location_name or city_name provided.',
           minimum: -180,
           maximum: 180
         },
-        location_name: {
-          type: 'string' as const,
-          description: 'Name of a saved location (e.g., "home", "cabin"). Use this instead of latitude/longitude to reference a saved location. List saved locations with list_saved_locations.'
-        },
         city_name: {
           type: 'string' as const,
-          description: 'City or place name to geocode (e.g., "Seattle, WA", "Paris, France"). For cities in China, use pinyin only (e.g., "Beijing", "Shanghai"; not Chinese characters). Uses the same geocoding as search_location. Not required if latitude/longitude or location_name is provided.'
+          description: 'Place name to geocode (e.g., "Seattle, WA"). For China, use pinyin only (e.g., "Beijing", "Shanghai"; not Chinese characters).'
         },
         days: {
           type: 'number' as const,
-          description: 'Number of days to include in forecast (1-16 for global, 1-7 for US NOAA, default: 7)',
+          description: 'Forecast days (1-16, default: 7)',
           minimum: 1,
           maximum: 16,
           default: 7
         },
         granularity: {
           type: 'string' as const,
-          description: 'Forecast granularity: "daily" for day/night periods or "hourly" for hour-by-hour detail (default: "daily")',
+          description: '"daily" or "hourly" (default: "daily")',
           enum: ['daily', 'hourly'],
           default: 'daily'
-        },
-        include_precipitation_probability: {
-          type: 'boolean' as const,
-          description: 'Include precipitation probability in the forecast output (default: true)',
-          default: true
-        },
-        include_severe_weather: {
-          type: 'boolean' as const,
-          description: 'Include severe weather probabilities such as thunderstorm chance, wind gust probabilities, and tropical storm/hurricane risks (default: false, US/NOAA only)',
-          default: false
-        },
-        include_normals: {
-          type: 'boolean' as const,
-          description: 'Include climate normals (30-year averages) for comparison with forecasted temperatures (default: false, daily forecasts only). Shows normal high/low and departure from normal for the first forecast day.',
-          default: false
-        },
-        source: {
-          type: 'string' as const,
-          description: 'Data source: "auto" (default, selects NOAA for US or Open-Meteo for international), "noaa" (US only), or "openmeteo" (global)',
-          enum: ['auto', 'noaa', 'openmeteo'],
-          default: 'auto'
         }
       },
       required: []
@@ -300,7 +275,7 @@ const TOOL_DEFINITIONS = {
 
   search_location: {
     name: 'search_location' as const,
-    description: 'Search for locations by name to get coordinates for weather queries. Uses Nominatim (OpenStreetMap) for excellent coverage of cities, towns, villages, and hamlets worldwide. Use this when the user provides a location name instead of coordinates (e.g., "Paris", "New York", "Tokyo", "San Francisco, CA", "Small Village, County"). Returns location matches with coordinates, timezone, elevation, and other metadata. Enables natural language location queries like "What\'s the weather in Paris?" by converting location names to coordinates.',
+    description: 'Search for locations by name(pinyin for china) to get coordinates for weather queries. Uses Nominatim (OpenStreetMap) for excellent coverage of cities, towns, villages, and hamlets worldwide.',
     inputSchema: {
       type: 'object' as const,
       properties: {

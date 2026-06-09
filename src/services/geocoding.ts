@@ -416,11 +416,11 @@ export class GeocodingService {
       logger.debug('Provider strategy: US-optimized (Census → Nominatim → Open-Meteo)');
     } else if (isLikelyUS === false) {
       // Definitely non-US - skip Census.gov
-      providers.push(this.nominatim, this.openmeteo);
+      providers.push(this.openmeteo, this.nominatim);
       logger.debug('Provider strategy: International (Nominatim → Open-Meteo)');
     } else {
       // Uncertain - try all providers
-      providers.push(this.census, this.nominatim, this.openmeteo);
+      providers.push(this.openmeteo, this.census, this.nominatim);
       logger.debug('Provider strategy: Uncertain (Census → Nominatim → Open-Meteo)');
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "@jablum/weather-mcp",
-  "version": "1.7.0",
+  "version": "1.7.6",
   "description": "MCP (Model Context Protocol) server providing weather data from NOAA and Open-Meteo APIs. Supports forecasts, current conditions, and historical weather data (1940-present) with no API keys required.",
   "mcpName": "io.github.jablum/weather-mcp",
   "main": "dist/index.js",
