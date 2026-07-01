@@ -653,7 +653,7 @@ export class OpenMeteoService {
       latitude,
       longitude,
       forecast_days: days,
-      temperature_unit: 'fahrenheit',
+      temperature_unit: 'celsius',
       wind_speed_unit: 'mph',
       precipitation_unit: 'inch',
       timezone: 'auto'

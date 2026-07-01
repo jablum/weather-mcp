@@ -124,6 +124,17 @@ export function calculateDeparture(actual: number, normal: number): string {
 }
 
 /**
+ * Convert climate normals from Fahrenheit to Celsius for display
+ */
+export function convertNormalsToCelsius(normals: ClimateNormals): ClimateNormals {
+  return {
+    ...normals,
+    tempHigh: Math.round((normals.tempHigh - 32) * 5 / 9),
+    tempLow: Math.round((normals.tempLow - 32) * 5 / 9),
+  };
+}
+
+/**
  * Format climate normals for display
  *
  * @param normals - Climate normals data
@@ -132,17 +143,19 @@ export function calculateDeparture(actual: number, normal: number): string {
  */
 export function formatNormals(
   normals: ClimateNormals,
-  currentTemp?: { high?: number; low?: number }
+  currentTemp?: { high?: number; low?: number },
+  temperatureUnit: 'F' | 'C' = 'F'
 ): string {
+  const unitLabel = temperatureUnit === 'C' ? '°C' : '°F';
   let output = `\n## 📊 Climate Context\n\n`;
-  output += `**Normal High:** ${normals.tempHigh}°F\n`;
-  output += `**Normal Low:** ${normals.tempLow}°F\n`;
+  output += `**Normal High:** ${normals.tempHigh}${unitLabel}\n`;
+  output += `**Normal Low:** ${normals.tempLow}${unitLabel}\n`;
   output += `**Normal Precipitation:** ${normals.precipitation}" \n`;
 
   if (currentTemp) {
     if (currentTemp.high !== undefined) {
       const departure = calculateDeparture(currentTemp.high, normals.tempHigh);
-      output += `**High Departure:** ${departure}°F`;
+      output += `**High Departure:** ${departure}${unitLabel}`;
       if (departure.startsWith('+')) {
         output += ` (warmer than normal)`;
       } else if (departure.startsWith('-')) {
@@ -153,7 +166,7 @@ export function formatNormals(
 
     if (currentTemp.low !== undefined) {
       const departure = calculateDeparture(currentTemp.low, normals.tempLow);
-      output += `**Low Departure:** ${departure}°F`;
+      output += `**Low Departure:** ${departure}${unitLabel}`;
       if (departure.startsWith('+')) {
         output += ` (warmer than normal)`;
       } else if (departure.startsWith('-')) {

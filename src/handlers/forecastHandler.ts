@@ -24,7 +24,7 @@ import {
   hasWinterWeather
 } from '../utils/snow.js';
 import { formatInTimezone, guessTimezoneFromCoords } from '../utils/timezone.js';
-import { getClimateNormals, formatNormals, getDateComponents } from '../utils/normals.js';
+import { getClimateNormals, formatNormals, getDateComponents, convertNormalsToCelsius } from '../utils/normals.js';
 
 interface ForecastArgs {
   latitude?: number;
@@ -469,9 +469,9 @@ async function formatOpenMeteoForecast(
       output += `## ${formatInTimezone(hourly.time[i], forecast.timezone, 'short')}\n`;
 
       if (hourly.temperature_2m?.[i] !== undefined) {
-        output += `**Temperature:** ${Math.round(hourly.temperature_2m[i])}°F`;
+        output += `**Temperature:** ${Math.round(hourly.temperature_2m[i])}°C`;
         if (hourly.apparent_temperature?.[i] !== undefined) {
-          output += ` (feels like ${Math.round(hourly.apparent_temperature[i])}°F)`;
+          output += ` (feels like ${Math.round(hourly.apparent_temperature[i])}°C)`;
         }
         output += `\n`;
       }
@@ -516,11 +516,11 @@ async function formatOpenMeteoForecast(
       output += `## ${dt.toLocaleString({ weekday: 'long', month: 'long', day: 'numeric' })}\n`;
 
       if (daily.temperature_2m_max?.[i] !== undefined && daily.temperature_2m_min?.[i] !== undefined) {
-        output += `**Temperature:** High ${Math.round(daily.temperature_2m_max[i])}°F / Low ${Math.round(daily.temperature_2m_min[i])}°F\n`;
+        output += `**Temperature:** High ${Math.round(daily.temperature_2m_max[i])}°C / Low ${Math.round(daily.temperature_2m_min[i])}°C\n`;
       }
 
       if (daily.apparent_temperature_max?.[i] !== undefined && daily.apparent_temperature_min?.[i] !== undefined) {
-        output += `**Feels Like:** High ${Math.round(daily.apparent_temperature_max[i])}°F / Low ${Math.round(daily.apparent_temperature_min[i])}°F\n`;
+        output += `**Feels Like:** High ${Math.round(daily.apparent_temperature_max[i])}°C / Low ${Math.round(daily.apparent_temperature_min[i])}°C\n`;
       }
 
       // Include sunrise/sunset data with timezone
@@ -602,7 +602,7 @@ async function formatOpenMeteoForecast(
             : undefined
         };
 
-        output += formatNormals(normals, currentTemps);
+        output += formatNormals(convertNormalsToCelsius(normals), currentTemps, 'C');
       }
     } catch (error) {
       // If normals fetch fails, just skip it (don't error the whole request)
